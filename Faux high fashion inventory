@@ -1,0 +1,45 @@
+CREATE TABLE high_fashion (id INTEGER PRIMARY KEY, brand TEXT, item TEXT, cost INTEGER, items_in_stock INTEGER);
+
+ 
+
+INSERT INTO high_fashion VALUES
+
+(1, "My oh My", "purse", 500, 15),
+
+(2, "My oh My", "scarf", 120, 32),
+
+(3, "My oh My", "wallet", 225, 22),
+
+(4, "Mock Vuitton", "clutch", 300, 18),
+
+(5, "Mock Vuitton", "purse", 885, 7),
+
+(6, "Mock Vuitton", "scarf", 344, 13),
+
+(7, "Wanna Be Hermes", "scarf", 275, 15),
+
+(8, "Wanna Be Hermes", "wallet", 300, 19),
+
+(9, "Wanna Be Hermes", "clutch", 572, 11),
+
+(10, "Too Tahari", "blazer", 220, 6),
+
+(11, "Too Tahari", "jacket", 390, 3),
+
+(12, "G&C Tonics", "pump", 225, 14),
+
+(13, "G&C Tonics", "loafer", 200, 22),
+
+(14, "Renfi fo fum", "flat", 155, 9),
+
+(15, "Renfi fo fum", "heel", 200, 3);
+
+ 
+
+SELECT id, brand, item, cost, SUM(items_in_stock * cost) As "total_worth_in_stock"
+
+FROM high_fashion
+
+GROUP BY brand, cost
+
+ORDER BY brand, cost desc;
