@@ -1,0 +1,110 @@
+/* Khan Academy Project: Famouse People
+Objective: In this project, you’re going to make your own table with some small set of “famous people”, then make more tables about things they do and join those to create nice human readable lists.
+My project: Three couples and their hobbies */
+
+CREATE TABLE characters
+    (id INTEGER PRIMARY KEY,
+    full_name TEXT,
+    age INTEGER,
+    mother TEXT,
+    father TEXT,
+    sister TEXT,
+    brother TEXT,
+    spouse TEXT);
+
+INSERT INTO characters VALUES
+(1, "Robert Rowlands", 44, "Apple Applebottom", "Abe Applebottom", " ", " ", "Lana Rowlands"),
+(2, "Lana Rowlands", 45, "Ella Toff", "Edward Toff", "Lily Toff", "Lance Toff", "Robert Rowlands"),
+(3, "Apple Applebottom", 63, "Alana Astor", "Allen Astor", "Ann Astor", " ", "Abe Applebottom"),
+(4, "Abe Applebottom", 68, "Edwina Applebottom", "Alistair Applebottom", " ", " ", "Apple Applebottom"),
+(5, "Lance Lutch", 32, "Lucy Lutch", "Larry Lutch", "Lara Lutch", " ", "Kelly Lutch"),
+(6, "Kelly Lutch", 33, "Kelsey Keller", "Colton Keller", "Barb Keller", "Bobby Keller", "Lance Lutch");
+
+
+CREATE TABLE hobbies
+    (id INTEGER PRIMARY KEY,
+    name TEXT,
+    hobby_type TEXT,
+    hobby_name TEXT);
+    
+INSERT INTO hobbies VALUES
+(1, "Abe Applebottom", "exercise", "walking"),
+(2, "Apple Applebottom", "exercise", "racquetball"),
+(3, "Lana Rowlands", "literature", "reading"),
+(4, "Lana Rowlands", "exercise", "running"),
+(5, "Robert Rowlands", "literature", "writing"),
+(6, "Robert Rowlands", "literature", "reading"),
+(7, "Apple Applebottom", "exercise", "crossfit"),
+(8, "Kelly Lutch", "literature", "writing"),
+(9, "Kelly Lutch", "literature", "reading"),
+(10, "Lance Lutch", "exercise", "crossfit");
+
+CREATE TABLE exercise
+    (id INTEGER PRIMARY KEY,
+    exercise_name TEXT,
+    duration INTEGER,
+    calories_burned INTEGER);
+
+INSERT INTO exercise VALUES
+    (1, "crossfit", 30, 200),
+    (2, "racquetball", 60, 150),
+    (3, "running", 20, 100),
+    (4, "walking", 120, 200);
+
+/*Info on characters*/
+SELECT *
+FROM characters;
+
+/*Info on hobbies*/
+SELECT *
+FROM hobbies;
+
+/*Spouses*/
+SELECT full_name, spouse
+FROM characters;
+
+/*Each person's hobbies*/
+SELECT characters.full_name, hobbies.hobby_name
+FROM characters
+JOIN hobbies
+ON characters.full_name = hobbies.name;
+
+/*Characters that exercise*/
+SELECT characters.full_name, hobbies.hobby_name
+FROM characters
+JOIN hobbies
+ON characters.full_name = hobbies.name
+WHERE hobbies.hobby_type = "exercise";
+
+/*Characters that like literature*/
+SELECT characters.full_name, hobbies.hobby_name
+FROM characters
+JOIN hobbies
+ON characters.full_name = hobbies.name
+WHERE hobbies.hobby_type = "literature";
+
+/*Popularity of hobbies*/
+SELECT hobby_name, COUNT(hobby_name) AS people_who_partake
+FROM hobbies
+GROUP by hobby_name
+ORDER by people_who_partake desc;
+
+/*How many calories burned when exercising*/
+SELECT exercise_name, calories_burned
+FROM exercise
+ORDER BY calories_burned desc;
+
+SELECT characters.full_name, exercise.exercise_name AS total_weekly_exercise
+FROM characters
+INNER JOIN hobbies on hobbies.name = characters.full_name
+INNER JOIN exercise ON hobbies.hobby_name = exercise.exercise_name
+GROUP BY characters.full_name;
+
+SELECT characters.full_name, SUM(exercise.calories_burned) AS total_weekly_calories
+FROM characters
+INNER JOIN hobbies on hobbies.name = characters.full_name
+INNER JOIN exercise ON hobbies.hobby_name = exercise.exercise_name
+GROUP by characters.full_name
+ORDER BY total_weekly_calories desc;
+
+
