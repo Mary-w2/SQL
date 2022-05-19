@@ -1,0 +1,122 @@
+/*For this project, I downloaded Spotify data from Kaggle
+at https://www.kaggle.com/datasets/equinxx/spotify-top-50-songs-in-2021?resource=download.
+I then created a table to insert Spotify data into and imported the Kaggle file. (Thank you, Charlotte.)
+I performed a few queries on the data.*/
+
+
+CREATE TABLE BIT_DB.Spotifydata 
+(id integer PRIMARY KEY,
+artist_name varchar NOT NULL,
+track_name varchar NOT NULL,
+track_id varchar NOT NULL,
+popularity integer NOT NULL,
+danceability decimal(4,3) NOT NULL,
+energy decimal(4,3) NOT NULL,
+key integer NOT NULL,
+loudness decimal(5,3) NOT NULL,
+mode integer NOT NULL,
+speechiness decimal(5,4) NOT NULL,
+acousticness decimal(6,5) NOT NULL,
+instrumentalness text NOT NULL,
+liveness decimal(5,4) NOT NULL,
+valence decimal(4,3) NOT NULL,
+tempo decimal(6,3) NOT NULL,
+duration_ms integer NOT NULL,
+time_signature integer NOT NULL);
+
+/*To get a feel for the data*/
+SELECT * FROM BIT_DB.Spotifydata LIMIT 10;
+
+/*Who are the top 3 most popular artists and the respective track?*/
+SELECT DISTINCT popularity, artist_name, track_name
+FROM BIT_DB.Spotifydata
+ORDER BY popularity DESC
+LIMIT 3;
+
+/*Tell me all the available info for these three artists.*/
+SELECT * 
+FROM BIT_DB.Spotifydata
+WHERE popularity > 94;
+
+/*So what makes a song popular on Spotify? What kind of trends are there for the more popular songs?*/
+SELECT * 
+FROM BIT_DB.Spotifydata
+ORDER BY popularity DESC
+LIMIT 10;
+
+/*Okay, what is the average popularity, danceability, and energy by artist and track? Maybe this can give us a hint to reasons one artist is more popular than another.*/
+SELECT artist_name, track_name, AVG(popularity), AVG(danceability), AVG(energy)
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name, track_name;
+
+/*What about the average popularity, danceability, and energy by JUST artist?*/
+SELECT artist_name, AVG(popularity), AVG(danceability), AVG(energy)
+FROM BIT_DB.Spotifydata
+GROUP BY artist_name
+ORDER BY AVG(popularity) DESC;
+
+/*Are instrumental songs in the top 10 most popular songs? Instrumental means the number of vocals in a song. The closer the value to 1.0, the more instrumental the song is.*/
+SELECT popularity, artist_name, track_name, instrumentalness
+FROM BIT_DB.Spotifydata
+WHERE popularity >=92
+ORDER BY instrumentalness DESC
+LIMIT 10;
+
+/*6 songs with popularity of 92 and above have an instrumentalness above 0. Are they also acoustic, or higher than 0.5?*/
+SELECT popularity, artist_name, track_name, instrumentalness, acousticness
+FROM BIT_DB.Spotifydata
+WHERE popularity >= 92
+    AND acousticness >= 0.5
+    AND instrumentalness >= 0
+ORDER BY acousticness DESC
+LIMIT 10;
+
+/*Only 1 artist was both acoustic and instrumental. What about just acoustic?*/
+SELECT popularity, artist_name, track_name, acousticness
+FROM BIT_DB.Spotifydata
+WHERE popularity >= 92
+ORDER BY acousticness DESC
+LIMIT 10;
+
+/*Only 20% of the top 10 most popular songs were acoustic. I think we can rule out acousticness and instrumentalness as significant indicators of the likelihood of popularity. 
+Moving on...
+Higher values indicate more of the column name.*/
+SELECT popularity, artist_name, track_name, loudness, energy, danceability, tempo
+FROM BIT_DB.Spotifydata
+ORDER BY popularity DESC
+LIMIT 10;
+
+/*What is the range of loudness?*/
+SELECT MAX(loudness), MIN(loudness)
+FROM BIT_DB.Spotifydata;
+
+SELECT AVG(loudness)
+FROM BIT_DB.Spotifydata;
+
+SELECT popularity, artist_name, track_name, loudness
+FROM BIT_DB.Spotifydata
+ORDER BY popularity DESC
+LIMIT 10;
+
+/*Only 4 songs are louder than the average top hit. Meh. How about danceability?*/
+SELECT MAX(danceability), MIN(danceability)
+FROM BIT_DB.Spotifydata;
+
+SELECT AVG(danceability)
+FROM BIT_DB.Spotifydata;
+
+SELECT popularity, artist_name, track_name, danceability
+FROM BIT_DB.Spotifydata
+ORDER BY popularity DESC
+LIMIT 10;
+
+/*6 of the top 10 were danceable. How about both danceable (above 0.6) and loud (above -5.9)?*/
+SELECT popularity, artist_name, track_name, danceability, loudness
+FROM BIT_DB.Spotifydata
+WHERE danceability >= 0.6
+    AND popularity >= 92
+HAVING AVG(loudness) >=-5.9
+LIMIT 10;
+
+/*Only 2 of the top hits had above average danceability and loudness.
+I'll play later. It's bedtime.*/
