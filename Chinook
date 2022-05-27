@@ -1,0 +1,233 @@
+/*Today's challenge is to answer questions about the chinook database that YOU (read: me, the person ignoring the lovely outside world where it's sunny 
+and full of margaritas) find interesting. 
+The chinook database is about a digital media store, and it includes tables for artists, albums, media tracks, invoices, and customers.*/
+
+/*The first set of questions were part of the Break into Tech Final SQL Challenge at https://breakintotech.teachable.com/courses/da-launch/lectures/39223879.
+The second part of the challenge is to think of questions that you to answer. I am going to impersonate a business analyst who wants to know the following:
+
+/*a. What is our customer base in the U.S.?
+ b. What are these customers buying?
+ c. Have sales increased or decreased recently?
+ d. What are we selling the most of? The least?
+ e. What should we stock for next year?*/
+
+/*Let's begin with the challenge questions!
+1. Show Customers (their full names, customer ID, and country) who are not in the U.S. (Hint: != or <> can be used to say "is not equal to").*/
+SELECT LastName, FirstName, CustomerId, Country
+FROM chinook.customers
+WHERE Country <> 'USA'
+GROUP BY Country;
+
+/* 2. Show only the Customers from Brazil.*/
+SELECT LastName, FirstName, CustomerId, Country
+FROM chinook.customers
+WHERE Country = 'Brazil'
+ORDER BY CustomerId;
+
+/* 3. Find the Invoices of customers who are from Brazil. The resulting table should show the customer's full name, Invoice ID, Date of the invoice, and billing country.*/
+SELECT c.LastName, c.FirstName, i.InvoiceId, i.InvoiceDate, i.BillingCountry
+FROM chinook.customers c
+    RIGHT JOIN chinook.invoices i
+    ON c.CustomerId = i.CustomerId
+WHERE i.BillingCountry = 'Brazil'
+ORDER BY c.LastName;
+
+/* 4. Show the Employees who are Sales Agents.*/
+SELECT EmployeeId, LastName, FirstName
+FROM chinook.employees
+WHERE Title = 'Sales Support Agent';
+
+/*5. Find a unique/distinct list of billing countries from the Invoice table.*/
+SELECT DISTINCT BillingCountry
+FROM chinook.invoices
+ORDER BY BillingCountry;
+
+/* 6. Provide a query that shows the invoices associated with each sales agent. The resulting table should include the Sales Agent's full name.*/
+SELECT e.LastName, e.FirstName, i.InvoiceId
+FROM chinook.customers c
+    JOIN chinook.employees e
+        ON c.SupportRepId = e.EmployeeId
+    JOIN chinook.invoices i
+        ON c.CustomerId = i.CustomerId
+ ORDER BY e.LastName, i.InvoiceId;
+
+/*7. Show the Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers.*/
+SELECT i.Total, c.LastName AS customer_lastname, c.FirstName AS customer_firstname, i.BillingCountry, e.LastName AS agent_lastname, e.FirstName AS sales_firstname
+FROM chinook.invoices i
+    JOIN chinook.customers c
+        ON i.CustomerId = c.CustomerId
+    JOIN chinook.employees e
+        ON c.SupportRepId = e.EmployeeId
+ORDER BY c.LastName;
+
+/* 8. How many Invoices were there in 2009?*/
+SELECT COUNT(InvoiceId)
+FROM chinook.invoices
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+/* 9. What are the total sales for 2009?*/
+SELECT SUM(Total)
+FROM chinook.invoices
+WHERE InvoiceDate BETWEEN '2009-01-01' AND '2009-12-31';
+
+/* 10. Write a query that includes the purchased track name with each invoice line item.*/
+SELECT i.InvoiceLineId, t.Name AS track_name, t.TrackId
+FROM chinook.tracks t
+    JOIN chinook.invoice_items i
+        ON t.TrackId = i.TrackId
+ORDER BY i.InvoiceLineId;
+
+/* 11. Write a query that includes the purchased track name AND artist name with each invoice line item.*/
+SELECT i.InvoiceLineId, t.Name AS track_name, t.Composer AS artist_name, t.TrackId
+FROM chinook.tracks t
+    JOIN chinook.invoice_items i
+        ON t.TrackId = i.TrackId
+ORDER BY i.InvoiceLineId;
+
+/* 12. Provide a query that shows all the Tracks, and include the Album name, Media type, and Genre.*/
+SELECT t.TrackId, t.Name AS track_name, a.Title AS album_name, m.Name AS media_name, g.Name AS genre_name
+FROM chinook.tracks t
+    JOIN chinook.albums a
+        ON t.AlbumId = a.AlbumId
+    JOIN chinook.media_types m
+        ON t.MediaTypeId = m.MediaTypeId
+    JOIN chinook.genres g
+        ON t.GenreId = g.GenreId;
+
+/* 13. Show the total sales made by each sales agent.*/
+SELECT SUM(i.Total), e.EmployeeId, e.LastName, e.FirstName
+FROM chinook.invoices i
+    JOIN chinook.customers c
+        ON i.CustomerId = c.CustomerId
+    JOIN chinook.employees e
+        ON c.SupportRepId = e.EmployeeId
+GROUP BY e.EmployeeId
+ORDER BY e.EmployeeId;
+
+/*But even better if we clean the query up and make sure we are using the sales agents and not another employee.*/
+
+SELECT e.EmployeeId, e.FirstName || ' ' || e.LastName AS 'Sales Agent',
+    ROUND(SUM(i.Total), 2) AS 'Total Sales'
+FROM chinook.Employees e
+    JOIN chinook.Customers c
+         ON c.SupportRepId = e.EmployeeId
+     JOIN chinook.Invoices I
+         ON i.CustomerId = c.CustomerId
+WHERE e.Title = 'Sales Support Agent' 
+GROUP BY e.EmployeeId;
+        
+/* 14. Which sales agent made the most in sales in 2009?*/
+SELECT e.EmployeeId, e.FirstName || ' ' || e.LastName AS 'Sales Agent',
+    ROUND(SUM(i.Total), 2) AS 'Total Sales'
+FROM chinook.Employees e
+    JOIN chinook.Customers c
+         ON c.SupportRepId = e.EmployeeId
+     JOIN chinook.Invoices I
+         ON i.CustomerId = c.CustomerId
+WHERE e.Title = 'Sales Support Agent' 
+    AND i.InvoiceDate LIKE '2009%'
+GROUP BY e.EmployeeId
+ORDER BY ROUND(SUM(i.Total), 2) DESC
+LIMIT 1;
+
+/*Now on to questions I have as a product analyst. I want to perform market research,
+analyze market data, and identify buyers' behaviors and trends. To begin, let's
+learn more about our domestic customer base.
+ 
+
+/*First, what is our customer base in the U.S. (domestic market)?*/
+SELECT *
+FROM chinook.customers
+WHERE Country = 'USA'
+GROUP BY State;
+
+/* My query resulted in a list of many NULL companies, but the rows are complete.
+Do I want to keep these? Right now, I want to see a list of ALL my customers,
+including individual buyers, so I will keep the NULLS.*/
+
+/*So, what are these customers buying?*/
+SELECT c.FirstName || ' ' || c.LastName AS 'Customer', i.InvoiceId AS 'Invoice Number',
+ t.Name AS 'Track Name', a.Title AS 'Album Name', m.Name AS 'Media Type', g.Name AS 'Genre'
+FROM chinook.customers c
+    JOIN chinook.invoices i
+        ON c.CustomerId = i.CustomerId
+    JOIN chinook.invoice_items item
+        ON i.InvoiceId = item.InvoiceId 
+    JOIN chinook.tracks t
+         ON item.trackId = t.Trackid
+    JOIN chinook.albums a
+        ON t.AlbumId = a.AlbumId
+    JOIN chinook.media_types m
+        ON t.MediaTypeId = m.MediaTypeId
+    JOIN chinook.genres g
+        ON t.GenreId = g.GenreId
+ORDER by c.LastName ASC;
+
+/*Great! Now, I want to also know how much each customer is spending per year.*/
+SELECT c.FirstName || ' ' || c.LastName AS 'Customer', 
+    ROUND(SUM(i.Total), 2) AS 'Total Sales',
+    STRFTIME('%Y', i.InvoiceDate)
+FROM chinook.customers c
+    JOIN chinook.invoices i
+        ON c.CustomerId = i.CustomerID
+GROUP BY c.LastName, STRFTIME('%Y', i.InvoiceDate)
+ORDER BY c.LastName, STRFTIME('%Y', i.InvoiceDate) ASC;
+
+ /*Have sales increased or decreased in the past few years (pretend it's 2014)?*/
+ SELECT STRFTIME('%Y', InvoiceDate) AS 'Year', ROUND(SUM(Total), 2) as 'Total Sales' 
+ FROM chinook.invoices
+ GROUP BY STRFTIME('%Y', InvoiceDate)
+ ORDER BY InvoiceDate DESC;
+
+ /*What are we selling the most of? The least? Let's start with the top 10.*/
+SELECT COUNT(item.TrackId), t.name AS 'Track Name', a.Title AS 'Album Name', m.Name AS 'Media Type', g.Name AS 'Genre'
+FROM chinook.invoices i
+    JOIN chinook.invoice_items item
+        ON i.InvoiceId = item.InvoiceId 
+    JOIN chinook.tracks t
+         ON item.trackId = t.Trackid
+    JOIN chinook.albums a
+        ON t.AlbumId = a.AlbumId
+    JOIN chinook.media_types m
+        ON t.MediaTypeId = m.MediaTypeId
+    JOIN chinook.genres g
+        ON t.GenreId = g.GenreId
+GROUP BY item.TrackID
+ORDER BY COUNT(item.TrackId) DESC
+LIMIT 10;
+
+SELECT COUNT(item.TrackId), t.name AS 'Track Name', a.Title AS 'Album Name', m.Name AS 'Media Type', g.Name AS 'Genre'
+FROM chinook.invoices i
+    JOIN chinook.invoice_items item
+        ON i.InvoiceId = item.InvoiceId 
+    JOIN chinook.tracks t
+         ON item.trackId = t.Trackid
+    JOIN chinook.albums a
+        ON t.AlbumId = a.AlbumId
+    JOIN chinook.media_types m
+        ON t.MediaTypeId = m.MediaTypeId
+    JOIN chinook.genres g
+        ON t.GenreId = g.GenreId
+GROUP BY item.TrackID
+ORDER BY COUNT(item.TrackId) ASC
+LIMIT 10;
+
+/*Hmmm. We don't have a lot of variance in the tracks sold (just 1 or 2). What type of media, e.g, MPEG or AAC audio file, is most common?*/
+SELECT STRFTIME('%Y', i.InvoiceDate), m.Name AS 'Media Type', COUNT(t.MediaTypeId) AS 'Total Media Type per Year'
+FROM chinook.invoices i
+    JOIN chinook.invoice_items item
+        ON i.InvoiceId = item.InvoiceId 
+    JOIN chinook.tracks t
+         ON item.trackId = t.Trackid
+    JOIN chinook.albums a
+        ON t.AlbumId = a.AlbumId
+    JOIN chinook.media_types m
+        ON t.MediaTypeId = m.MediaTypeId
+GROUP BY STRFTIME('%Y', i.InvoiceDate), t.MediaTypeId
+ORDER BY STRFTIME('%Y', i.InvoiceDate) DESC;
+
+ /*Based on market trends, what should we stock for next year? 
+ 
+We know we definitely are selling more MPEG audio files than any other type of media in the U.S. 
+Rock is our best seller. I feel like we need to do a deeper dive into specific artists and find out
+what new albums and/or the top selling artists are releasing next year before making a final decision./
